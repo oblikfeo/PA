@@ -1,0 +1,1 @@
+<time class="mb-0 text-capitalize">фев 1, 2026<span class="text-muted d-block">вск, 17:45</span></time><?php /**PATH C:\Users\oblik\Desktop\P.A\storage\framework/views/058c991433ab6f91ccc3b4f20e0bb5a3.blade.php ENDPATH**/ ?>

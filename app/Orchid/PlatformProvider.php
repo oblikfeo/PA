@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Orchid;
+
+use Orchid\Platform\Dashboard;
+use Orchid\Platform\ItemPermission;
+use Orchid\Platform\OrchidServiceProvider;
+use Orchid\Screen\Actions\Menu;
+
+class PlatformProvider extends OrchidServiceProvider
+{
+    public function boot(Dashboard $dashboard): void
+    {
+        parent::boot($dashboard);
+    }
+
+    /**
+     * @return Menu[]
+     */
+    public function menu(): array
+    {
+        return [
+            Menu::make('Клиенты')
+                ->icon('bs.people')
+                ->route('platform.resource.list', ['client-resources']),
+
+            Menu::make('Студии')
+                ->icon('bs.building')
+                ->route('platform.resource.list', ['studio-resources']),
+
+            Menu::make('Типы абонементов')
+                ->icon('bs.card-list')
+                ->route('platform.resource.list', ['subscription-type-resources']),
+
+            Menu::make('Расписание')
+                ->icon('bs.calendar-week')
+                ->route('platform.resource.list', ['schedule-resources']),
+
+            Menu::make('Абонементы')
+                ->icon('bs.card-heading')
+                ->route('platform.resource.list', ['subscription-resources']),
+
+            Menu::make('Посещения')
+                ->icon('bs.calendar-check')
+                ->route('platform.resource.list', ['visit-resources']),
+
+            Menu::make('Платежи')
+                ->icon('bs.cash-stack')
+                ->route('platform.resource.list', ['payment-resources']),
+        ];
+    }
+
+    /**
+     * @return ItemPermission[]
+     */
+    public function permissions(): array
+    {
+        return [
+            ItemPermission::group(__('Система'))
+                ->addPermission('platform.systems.roles', __('Роли'))
+                ->addPermission('platform.systems.users', __('Пользователи')),
+        ];
+    }
+}
