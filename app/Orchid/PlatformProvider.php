@@ -26,9 +26,13 @@ class PlatformProvider extends OrchidServiceProvider
                 ->icon('bs.people')
                 ->route('platform.resource.list', ['client-resources']),
 
-            Menu::make('Студии')
-                ->icon('bs.building')
-                ->route('platform.resource.list', ['studio-resources']),
+            Menu::make('Платежи')
+                ->icon('bs.cash-stack')
+                ->route('platform.resource.list', ['payment-resources']),
+
+            Menu::make('Абонементы')
+                ->icon('bs.card-heading')
+                ->route('platform.resource.list', ['subscription-resources']),
 
             Menu::make('Типы абонементов')
                 ->icon('bs.card-list')
@@ -37,18 +41,6 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make('Расписание')
                 ->icon('bs.calendar-week')
                 ->route('platform.resource.list', ['schedule-resources']),
-
-            Menu::make('Абонементы')
-                ->icon('bs.card-heading')
-                ->route('platform.resource.list', ['subscription-resources']),
-
-            Menu::make('Посещения')
-                ->icon('bs.calendar-check')
-                ->route('platform.resource.list', ['visit-resources']),
-
-            Menu::make('Платежи')
-                ->icon('bs.cash-stack')
-                ->route('platform.resource.list', ['payment-resources']),
         ];
     }
 

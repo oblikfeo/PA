@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'Sport CRM') }}</title>
+        <title>{{ config('app.name', 'Hilton #') }}</title>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100 flex items-center justify-center">

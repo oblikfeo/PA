@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Только иконки для кнопок «Просмотреть» и «Редактировать» в CRUD (ключ с точкой для addLines)
+        $this->app['translator']->addLines([
+            '*.View' => ' ',
+            '*.Edit' => ' ',
+        ], 'ru');
     }
 }

@@ -126,7 +126,7 @@ return [
      */
 
     'resource' => [
-        'stylesheets' => [],
+        'stylesheets' => ['/css/orchid-pink.css'],
         'scripts'     => [],
     ],
 
