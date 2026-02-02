@@ -15,6 +15,10 @@ class Client extends Model
     protected $allowedFilters = [];
     protected $allowedSorts = ['id', 'first_name', 'last_name', 'phone', 'created_at'];
 
+    protected $attributes = [
+        'balance' => 0,
+    ];
+
     protected $fillable = [
         'first_name',
         'last_name',

@@ -29,6 +29,15 @@ class Payment extends Model
         'payment_date' => 'date',
     ];
 
+    /**
+     * Платёж без subscription_id = пополнение баланса клиента.
+     * Платёж с subscription_id = фиксация оплаты абонемента (создаётся автоматически при покупке).
+     */
+    public function isTopUp(): bool
+    {
+        return empty($this->subscription_id);
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

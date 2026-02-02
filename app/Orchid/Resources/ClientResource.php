@@ -38,7 +38,13 @@ class ClientResource extends Resource
             Input::make('first_name')->title('Имя')->required(),
             Input::make('last_name')->title('Фамилия')->required(),
             Input::make('phone')->title('Телефон')->required(),
-            Input::make('balance')->title('Баланс (кошелёк)')->type('number')->step(0.01)->value(0),
+            Input::make('balance')
+                ->title('Баланс (кошелёк)')
+                ->type('number')
+                ->step(0.01)
+                ->value(0)
+                ->disabled()
+                ->help('Баланс меняется только через раздел «Платежи» (пополнение) и при покупке абонемента.'),
         ];
     }
 

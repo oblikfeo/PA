@@ -4,8 +4,11 @@ namespace App\Orchid\Resources;
 
 use App\Models\Client;
 use App\Models\Payment;
-use App\Models\Subscription;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
+use Orchid\Crud\Layouts\ResourceFields;
 use Orchid\Crud\Resource;
+use Orchid\Crud\ResourceRequest;
 use Orchid\Screen\Fields\DateTimer;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Relation;
@@ -42,7 +45,6 @@ class PaymentResource extends Resource
     {
         return [
             Relation::make('client_id')->fromModel(Client::class, 'last_name')->title('Клиент')->required()->searchColumns('first_name', 'last_name', 'phone'),
-            Relation::make('subscription_id')->fromModel(Subscription::class, 'id')->title('Абонемент')->displayAppend('id')->empty(),
             Input::make('amount')->title('Сумма')->type('number')->step(0.01)->required(),
             DateTimer::make('payment_date')->title('Дата оплаты')->format('Y-m-d')->required(),
             Select::make('payment_method')->title('Способ оплаты')->options([
@@ -73,7 +75,6 @@ class PaymentResource extends Resource
         return [
             Sight::make('id'),
             Sight::make('client_id', 'Клиент')->render(fn ($m) => $m->client?->full_name ?? '-'),
-            Sight::make('subscription_id', 'Абонемент')->render(fn ($m) => $m->subscription_id ?? '-'),
             Sight::make('amount', 'Сумма'),
             Sight::make('payment_date', 'Дата оплаты'),
             Sight::make('payment_method', 'Способ оплаты'),
@@ -100,5 +101,48 @@ class PaymentResource extends Resource
     public function filters(): array
     {
         return [];
+    }
+
+    /**
+     * Данные формы приходят с префиксом "model" — передаём в модель только их.
+     * После сохранения обновляем баланс клиента для пополнений.
+     */
+    public function save(ResourceRequest $request, Model $model): void
+    {
+        $data = $request->input(ResourceFields::PREFIX, $request->all());
+        if ((float) ($data['amount'] ?? 0) <= 0) {
+            throw ValidationException::withMessages([
+                'model.amount' => ['Сумма пополнения баланса должна быть больше нуля.'],
+            ]);
+        }
+        $wasRecentlyCreated = !$model->exists;
+        $oldAmount = $model->exists ? (float) $model->getRawOriginal('amount') : 0;
+
+        $model->forceFill($data)->save();
+
+        $isTopUp = empty($model->subscription_id);
+        if ($isTopUp && $model->client_id && (float) $model->amount > 0) {
+            if ($wasRecentlyCreated) {
+                Client::where('id', $model->client_id)->increment('balance', $model->amount);
+            } else {
+                $newAmount = (float) $model->amount;
+                $diff = $newAmount - $oldAmount;
+                if ($diff !== 0.0) {
+                    Client::where('id', $model->client_id)->increment('balance', $diff);
+                }
+            }
+        }
+    }
+
+    /**
+     * Перед удалением пополнения — списываем сумму с баланса клиента.
+     */
+    public function delete(Model $model): void
+    {
+        $isTopUp = empty($model->subscription_id);
+        if ($isTopUp && $model->client_id && (float) $model->amount > 0) {
+            Client::where('id', $model->client_id)->decrement('balance', $model->amount);
+        }
+        $model->delete();
     }
 }

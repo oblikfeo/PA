@@ -56,4 +56,19 @@ class Subscription extends Model
     {
         return $this->hasMany(PaymentReminder::class);
     }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Subscription $subscription): void {
+            $type = $subscription->subscriptionType ?? ($subscription->subscription_type_id ? SubscriptionType::find($subscription->subscription_type_id) : null);
+            if (!$subscription->exists && $type) {
+                if ($subscription->lessons_remaining === null || $subscription->lessons_remaining === '') {
+                    $subscription->lessons_remaining = $type->lessons_count ?? 0;
+                }
+                if (!$subscription->expires_at && $subscription->purchase_date && $type->validity_days) {
+                    $subscription->expires_at = $subscription->purchase_date->copy()->addDays($type->validity_days);
+                }
+            }
+        });
+    }
 }

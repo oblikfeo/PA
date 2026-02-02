@@ -3,11 +3,16 @@
 namespace App\Orchid\Resources;
 
 use App\Models\Client;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionType;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Orchid\Crud\Layouts\ResourceFields;
 use Orchid\Crud\Resource;
+use Orchid\Crud\ResourceRequest;
 use Orchid\Screen\Fields\DateTimer;
-use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Sight;
@@ -41,10 +46,13 @@ class SubscriptionResource extends Resource
     {
         return [
             Relation::make('client_id')->fromModel(Client::class, 'last_name')->title('Клиент')->required()->searchColumns('first_name', 'last_name', 'phone'),
-            Relation::make('subscription_type_id')->fromModel(SubscriptionType::class, 'name')->title('Тип абонемента')->required(),
+            Relation::make('subscription_type_id')
+                ->fromModel(SubscriptionType::class, 'name')
+                ->title('Тип абонемента')
+                ->required()
+                ->help('Стоимость спишется с баланса клиента. При недостатке средств оформите пополнение в разделе «Платежи».'),
             DateTimer::make('purchase_date')->title('Дата покупки')->format('Y-m-d')->required(),
             DateTimer::make('expires_at')->title('Действует до')->format('Y-m-d'),
-            Input::make('lessons_remaining')->title('Остаток занятий')->type('number')->required(),
             Select::make('is_active')->title('Активен')->options([1 => 'Да', 0 => 'Нет']),
         ];
     }
@@ -65,7 +73,6 @@ class SubscriptionResource extends Resource
             TD::make('expires_at', 'До')->render(function ($m) {
                 return $m->expires_at ? $m->expires_at->format('d.m.Y') : '-';
             }),
-            TD::make('lessons_remaining', 'Остаток'),
             TD::make('is_active', 'Активен')->render(function ($m) {
                 return $m->is_active ? 'Да' : 'Нет';
             }),
@@ -84,7 +91,6 @@ class SubscriptionResource extends Resource
             }),
             Sight::make('purchase_date', 'Дата покупки'),
             Sight::make('expires_at', 'Действует до'),
-            Sight::make('lessons_remaining', 'Остаток занятий'),
             Sight::make('is_active', 'Активен'),
             Sight::make('created_at', 'Создан'),
             Sight::make('updated_at', 'Обновлён'),
@@ -97,7 +103,6 @@ class SubscriptionResource extends Resource
             'client_id' => 'required|exists:clients,id',
             'subscription_type_id' => 'required|exists:subscription_types,id',
             'purchase_date' => 'required|date',
-            'lessons_remaining' => 'required|integer|min:0',
         ];
     }
 
@@ -109,5 +114,66 @@ class SubscriptionResource extends Resource
     public function filters(): array
     {
         return [];
+    }
+
+    /**
+     * Данные формы приходят с префиксом "model". Перед созданием проверяем баланс, после — списываем и создаём платёж.
+     */
+    public function save(ResourceRequest $request, Model $model): void
+    {
+        $data = $request->input(ResourceFields::PREFIX, $request->all());
+        $wasRecentlyCreated = !$model->exists;
+
+        if (!$model->exists && !empty($data['client_id']) && !empty($data['subscription_type_id'])) {
+            $client = Client::find($data['client_id']);
+            $type = SubscriptionType::find($data['subscription_type_id']);
+            if ($client && $type) {
+                $balance = (float) $client->balance;
+                $price = (float) $type->price;
+                if ($balance < $price) {
+                    throw ValidationException::withMessages([
+                        'model.subscription_type_id' => [
+                            'На балансе клиента недостаточно средств. Требуется: ' . number_format($price, 2, '.', ' ') . ' ₽, на балансе: ' . number_format($balance, 2, '.', ' ') . ' ₽. Сначала оформите пополнение в разделе «Платежи».',
+                        ],
+                    ]);
+                }
+            }
+        }
+
+        $model->forceFill($data)->save();
+
+        if ($wasRecentlyCreated && $model->client_id && $model->subscription_type_id) {
+            $type = $model->subscriptionType;
+            if ($type) {
+                $price = (float) $type->price;
+                DB::transaction(function () use ($model, $price): void {
+                    Client::where('id', $model->client_id)->decrement('balance', $price);
+                    Payment::create([
+                        'client_id' => $model->client_id,
+                        'subscription_id' => $model->id,
+                        'amount' => $price,
+                        'payment_date' => $model->purchase_date ?? now(),
+                        'payment_method' => 'cash',
+                        'notes' => 'Оплата абонемента #' . $model->id,
+                    ]);
+                });
+            }
+        }
+    }
+
+    /**
+     * При удалении абонемента возвращаем сумму на баланс и удаляем связанные платежи.
+     */
+    public function delete(Model $model): void
+    {
+        $type = $model->subscriptionType ?? SubscriptionType::find($model->subscription_type_id);
+        $price = $type ? (float) $type->price : 0;
+        if ($price > 0 && $model->client_id) {
+            DB::transaction(function () use ($model, $price): void {
+                Client::where('id', $model->client_id)->increment('balance', $price);
+                $model->payments()->delete();
+            });
+        }
+        $model->delete();
     }
 }
