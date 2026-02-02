@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Orchid\Screens\HomeScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\User\UserEditScreen;
@@ -10,7 +11,7 @@ use App\Orchid\Screens\User\UserProfileScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
 
-Route::get('/main', fn () => redirect()->route('platform.resource.list', ['resource' => 'client-resources']))
+Route::screen('main', HomeScreen::class)
     ->name('platform.main');
 
 Route::screen('profile', UserProfileScreen::class)
