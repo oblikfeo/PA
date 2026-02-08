@@ -8,6 +8,7 @@ use Orchid\Crud\Resource;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\Switcher;
 use Orchid\Screen\Sight;
 use Orchid\Screen\TD;
 
@@ -52,10 +53,11 @@ class ScheduleResource extends Resource
     {
         return [
             Relation::make('studio_id')->fromModel(Studio::class, 'name')->title('Студия')->required(),
-            Select::make('day_of_week')->title('День недели')->options(self::dayOptions())->required(),
+            Input::make('title')->title('Название события')->placeholder('Например: Йога, Пилатес'),
+            Select::make('days_of_week')->title('Дни недели (повторяется каждую неделю)')->options(self::dayOptions())->multiple()->required(),
             Input::make('start_time')->title('Начало')->type('time')->required(),
             Input::make('end_time')->title('Конец')->type('time')->required(),
-            Select::make('is_reserve')->title('Резервный день')->options([0 => 'Нет', 1 => 'Да']),
+            Switcher::make('is_enabled')->title('Включено в расписание')->sendTrueOrFalse()->placeholder('Выключенные слоты не показываются в календаре'),
         ];
     }
 
@@ -63,11 +65,15 @@ class ScheduleResource extends Resource
     {
         return [
             TD::make('id'),
+            TD::make('title', 'Событие')->render(fn ($m) => $m->title ?: '—'),
             TD::make('studio_id', 'Студия')->render(fn ($m) => $m->studio?->name ?? '-'),
-            TD::make('day_of_week', 'День')->render(fn ($m) => self::dayOptions()[$m->day_of_week] ?? $m->day_of_week),
+            TD::make('days_short', 'Дни')->render(fn ($m) => $m->days_short),
             TD::make('start_time', 'Начало'),
             TD::make('end_time', 'Конец'),
-            TD::make('is_reserve', 'Резерв')->render(fn ($m) => $m->is_reserve ? 'Да' : 'Нет'),
+            TD::make('is_enabled', 'Вкл')->render(function (Schedule $m) {
+                $url = route('platform.schedule.toggle', $m);
+                return view('platform.partials.schedule-enabled-switch', ['model' => $m, 'url' => $url])->render();
+            }),
         ];
     }
 
@@ -75,11 +81,12 @@ class ScheduleResource extends Resource
     {
         return [
             Sight::make('id'),
+            Sight::make('title', 'Название события')->render(fn ($m) => $m->title ?: '—'),
             Sight::make('studio_id', 'Студия')->render(fn ($m) => $m->studio?->name ?? '-'),
-            Sight::make('day_of_week', 'День недели')->render(fn ($m) => self::dayOptions()[$m->day_of_week] ?? $m->day_of_week),
+            Sight::make('days_short', 'Дни недели')->render(fn ($m) => $m->days_short),
             Sight::make('start_time', 'Начало'),
             Sight::make('end_time', 'Конец'),
-            Sight::make('is_reserve', 'Резервный день'),
+            Sight::make('is_enabled', 'Включено в расписание')->render(fn ($m) => $m->is_enabled ? 'Да' : 'Нет'),
             Sight::make('created_at', 'Создан'),
             Sight::make('updated_at', 'Обновлён'),
         ];
@@ -89,7 +96,8 @@ class ScheduleResource extends Resource
     {
         return [
             'studio_id' => 'required|exists:studios,id',
-            'day_of_week' => 'required|integer|between:0,6',
+            'days_of_week' => 'required|array|min:1',
+            'days_of_week.*' => 'integer|between:0,6',
             'start_time' => 'required',
             'end_time' => 'required',
         ];

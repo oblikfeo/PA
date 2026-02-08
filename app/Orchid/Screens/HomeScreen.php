@@ -20,7 +20,7 @@ class HomeScreen extends Screen
     {
         $year = (int) request('year', now()->year);
         $month = (int) request('month', now()->month);
-        $schedules = Schedule::with('studio')->get();
+        $schedules = Schedule::with('studio')->enabled()->get();
 
         return [
             'calendar' => $this->buildCalendar($year, $month, $schedules),
@@ -67,7 +67,7 @@ class HomeScreen extends Screen
             $dayOfWeek = (int) $current->format('w');
             $dayNum = $current->month === $month ? $current->day : null;
             $daySchedules = $current->month === $month
-                ? $schedules->where('day_of_week', $dayOfWeek)->values()
+                ? $schedules->filter(fn ($s) => $s->hasDay($dayOfWeek))->values()
                 : collect();
 
             $days[] = [

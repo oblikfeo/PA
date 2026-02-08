@@ -46,12 +46,11 @@ class DatabaseSeeder extends Seeder
         $this->command->info('  Типов абонементов: ' . SubscriptionType::count());
 
         $this->command->info('Создание расписания...');
+        // Слоты с одним днём (старый формат)
         $slots = [
-            ['studio' => $modelStudio, 'day_of_week' => 0, 'start_time' => '13:00', 'end_time' => '14:30', 'is_reserve' => false],
-            ['studio' => $modelStudio, 'day_of_week' => 0, 'start_time' => '15:00', 'end_time' => '16:30', 'is_reserve' => false],
-            ['studio' => $modelStudio, 'day_of_week' => 6, 'start_time' => '15:00', 'end_time' => '16:30', 'is_reserve' => true],
-            ['studio' => $yogaStudio, 'day_of_week' => 2, 'start_time' => '19:00', 'end_time' => '20:00', 'is_reserve' => false],
-            ['studio' => $yogaStudio, 'day_of_week' => 4, 'start_time' => '19:00', 'end_time' => '20:00', 'is_reserve' => false],
+            ['studio' => $modelStudio, 'day_of_week' => 0, 'days_of_week' => null, 'title' => null, 'start_time' => '13:00', 'end_time' => '14:30', 'is_reserve' => false, 'is_enabled' => true],
+            ['studio' => $modelStudio, 'day_of_week' => 0, 'days_of_week' => null, 'title' => null, 'start_time' => '15:00', 'end_time' => '16:30', 'is_reserve' => false, 'is_enabled' => true],
+            ['studio' => $modelStudio, 'day_of_week' => 6, 'days_of_week' => null, 'title' => null, 'start_time' => '15:00', 'end_time' => '16:30', 'is_reserve' => true, 'is_enabled' => true],
         ];
         foreach ($slots as $s) {
             Schedule::firstOrCreate(
@@ -60,9 +59,30 @@ class DatabaseSeeder extends Seeder
                     'day_of_week' => $s['day_of_week'],
                     'start_time' => $s['start_time'],
                 ],
-                ['end_time' => $s['end_time'], 'is_reserve' => $s['is_reserve']]
+                [
+                    'end_time' => $s['end_time'],
+                    'is_reserve' => $s['is_reserve'],
+                    'is_enabled' => $s['is_enabled'],
+                    'title' => $s['title'],
+                    'days_of_week' => $s['days_of_week'],
+                ]
             );
         }
+        // Повторяющееся событие: йога по средам и пятницам каждую неделю
+        Schedule::firstOrCreate(
+            [
+                'studio_id' => $yogaStudio->id,
+                'title' => 'Йога',
+                'start_time' => '19:00',
+            ],
+            [
+                'day_of_week' => 3,
+                'days_of_week' => [3, 5],
+                'end_time' => '20:00',
+                'is_reserve' => false,
+                'is_enabled' => true,
+            ]
+        );
         $this->command->info('  Слотов расписания: ' . Schedule::count());
 
         $this->command->info('Создание тестовых клиентов...');

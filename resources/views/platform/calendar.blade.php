@@ -33,7 +33,14 @@
                                 @if($cell['schedules']->isNotEmpty())
                                     <div class="calendar-day-times small mt-1">
                                         @foreach($cell['schedules'] as $s)
-                                            <div>{{ \Carbon\Carbon::parse($s->start_time)->format('H:i') }}@if($s->end_time)–{{ \Carbon\Carbon::parse($s->end_time)->format('H:i') }}@endif</div>
+                                            <div>
+                                                @if($s->title)
+                                                    <span class="calendar-event-title">{{ $s->title }}</span>
+                                                    <span class="text-muted"> {{ \Carbon\Carbon::parse($s->start_time)->format('H:i') }}@if($s->end_time)–{{ \Carbon\Carbon::parse($s->end_time)->format('H:i') }}@endif</span>
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($s->start_time)->format('H:i') }}@if($s->end_time)–{{ \Carbon\Carbon::parse($s->end_time)->format('H:i') }}@endif
+                                                @endif
+                                            </div>
                                         @endforeach
                                     </div>
                                 @endif
@@ -121,5 +128,8 @@
     color: #831843;
     line-height: 1.35;
     font-weight: 500;
+}
+.calendar-event-title {
+    font-weight: 600;
 }
 </style>

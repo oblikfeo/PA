@@ -33,7 +33,14 @@
                                 <?php if($cell['schedules']->isNotEmpty()): ?>
                                     <div class="calendar-day-times small mt-1">
                                         <?php $__currentLoopData = $cell['schedules']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <div><?php echo e(\Carbon\Carbon::parse($s->start_time)->format('H:i')); ?><?php if($s->end_time): ?>–<?php echo e(\Carbon\Carbon::parse($s->end_time)->format('H:i')); ?><?php endif; ?></div>
+                                            <div>
+                                                <?php if($s->title): ?>
+                                                    <span class="calendar-event-title"><?php echo e($s->title); ?></span>
+                                                    <span class="text-muted"> <?php echo e(\Carbon\Carbon::parse($s->start_time)->format('H:i')); ?><?php if($s->end_time): ?>–<?php echo e(\Carbon\Carbon::parse($s->end_time)->format('H:i')); ?><?php endif; ?></span>
+                                                <?php else: ?>
+                                                    <?php echo e(\Carbon\Carbon::parse($s->start_time)->format('H:i')); ?><?php if($s->end_time): ?>–<?php echo e(\Carbon\Carbon::parse($s->end_time)->format('H:i')); ?><?php endif; ?>
+                                                <?php endif; ?>
+                                            </div>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </div>
                                 <?php endif; ?>
@@ -121,6 +128,9 @@
     color: #831843;
     line-height: 1.35;
     font-weight: 500;
+}
+.calendar-event-title {
+    font-weight: 600;
 }
 </style>
 <?php /**PATH C:\Users\oblik\Desktop\P.A\resources\views/platform/calendar.blade.php ENDPATH**/ ?>

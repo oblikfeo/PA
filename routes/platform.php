@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\Schedule;
 use App\Orchid\Screens\HomeScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
@@ -13,6 +14,11 @@ use Tabuna\Breadcrumbs\Trail;
 
 Route::screen('main', HomeScreen::class)
     ->name('platform.main');
+
+Route::post('schedule/{schedule}/toggle', function (Schedule $schedule) {
+    $schedule->update(['is_enabled' => request('is_enabled') === '1']);
+    return redirect()->back();
+})->name('platform.schedule.toggle');
 
 Route::screen('profile', UserProfileScreen::class)
     ->name('platform.profile')
