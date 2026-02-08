@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionType;
+use App\Orchid\Filters\SubscriptionClientSearchFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -74,7 +75,7 @@ class SubscriptionResource extends Resource
                 return $m->expires_at ? $m->expires_at->format('d.m.Y') : '-';
             }),
             TD::make('is_active', 'Активен')->render(function ($m) {
-                return $m->is_active ? 'Да' : 'Нет';
+                return $m->isExpired() ? 'Кончился' : 'Да';
             }),
         ];
     }
@@ -91,7 +92,9 @@ class SubscriptionResource extends Resource
             }),
             Sight::make('purchase_date', 'Дата покупки'),
             Sight::make('expires_at', 'Действует до'),
-            Sight::make('is_active', 'Активен'),
+            Sight::make('is_active', 'Активен')->render(function ($m) {
+                return $m->isExpired() ? 'Кончился' : 'Да';
+            }),
             Sight::make('created_at', 'Создан'),
             Sight::make('updated_at', 'Обновлён'),
         ];
@@ -113,7 +116,9 @@ class SubscriptionResource extends Resource
 
     public function filters(): array
     {
-        return [];
+        return [
+            new SubscriptionClientSearchFilter(),
+        ];
     }
 
     /**

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Orchid;
 
+use App\Orchid\Screens\ResourceListScreen;
+use Orchid\Crud\Screens\ListScreen;
 use Orchid\Platform\Dashboard;
 use Orchid\Platform\ItemPermission;
 use Orchid\Platform\OrchidServiceProvider;
@@ -11,6 +13,12 @@ use Orchid\Screen\Actions\Menu;
 
 class PlatformProvider extends OrchidServiceProvider
 {
+    public function register(): void
+    {
+        parent::register();
+        $this->app->bind(ListScreen::class, ResourceListScreen::class);
+    }
+
     public function boot(Dashboard $dashboard): void
     {
         parent::boot($dashboard);

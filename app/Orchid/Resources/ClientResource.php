@@ -3,6 +3,7 @@
 namespace App\Orchid\Resources;
 
 use App\Models\Client;
+use App\Orchid\Filters\ClientSearchFilter;
 use Orchid\Crud\Resource;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Sight;
@@ -83,6 +84,8 @@ class ClientResource extends Resource
 
     public function filters(): array
     {
-        return [];
+        return [
+            new ClientSearchFilter(),
+        ];
     }
 }

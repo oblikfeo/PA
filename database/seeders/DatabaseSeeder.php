@@ -25,19 +25,18 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Создание типов абонементов...');
         $types = [
-            ['studio' => $modelStudio, 'name' => 'Месячный абонемент', 'price' => 5000, 'lessons_count' => null, 'validity_days' => 30, 'is_one_time' => false, 'is_personal' => false],
-            ['studio' => $modelStudio, 'name' => 'Разовое занятие', 'price' => 1500, 'lessons_count' => 1, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => false],
-            ['studio' => $yogaStudio, 'name' => 'Абонемент 4 занятия', 'price' => 3000, 'lessons_count' => 4, 'validity_days' => 30, 'is_one_time' => false, 'is_personal' => false],
-            ['studio' => $yogaStudio, 'name' => 'Абонемент 8 занятий', 'price' => 5000, 'lessons_count' => 8, 'validity_days' => 60, 'is_one_time' => false, 'is_personal' => false],
-            ['studio' => $yogaStudio, 'name' => 'Разовое занятие', 'price' => 1000, 'lessons_count' => 1, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => false],
-            ['studio' => $yogaStudio, 'name' => 'Персональное занятие', 'price' => 2500, 'lessons_count' => 1, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => true],
+            ['studio' => $modelStudio, 'name' => 'Месячный абонемент', 'price' => 5000, 'validity_days' => 30, 'is_one_time' => false, 'is_personal' => false],
+            ['studio' => $modelStudio, 'name' => 'Разовое занятие', 'price' => 1500, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => false],
+            ['studio' => $yogaStudio, 'name' => 'Абонемент 4 занятия', 'price' => 3000, 'validity_days' => 30, 'is_one_time' => false, 'is_personal' => false],
+            ['studio' => $yogaStudio, 'name' => 'Абонемент 8 занятий', 'price' => 5000, 'validity_days' => 60, 'is_one_time' => false, 'is_personal' => false],
+            ['studio' => $yogaStudio, 'name' => 'Разовое занятие', 'price' => 1000, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => false],
+            ['studio' => $yogaStudio, 'name' => 'Персональное занятие', 'price' => 2500, 'validity_days' => 7, 'is_one_time' => true, 'is_personal' => true],
         ];
         foreach ($types as $t) {
             SubscriptionType::firstOrCreate(
                 ['studio_id' => $t['studio']->id, 'name' => $t['name']],
                 [
                     'price' => $t['price'],
-                    'lessons_count' => $t['lessons_count'],
                     'validity_days' => $t['validity_days'],
                     'is_one_time' => $t['is_one_time'],
                     'is_personal' => $t['is_personal'],

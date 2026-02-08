@@ -20,7 +20,6 @@ class SubscriptionType extends Model
         'studio_id',
         'name',
         'price',
-        'lessons_count',
         'validity_days',
         'is_one_time',
         'is_personal',
@@ -28,7 +27,6 @@ class SubscriptionType extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
-        'lessons_count' => 'integer',
         'validity_days' => 'integer',
         'is_one_time' => 'boolean',
         'is_personal' => 'boolean',

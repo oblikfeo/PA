@@ -4,6 +4,7 @@ namespace App\Orchid\Resources;
 
 use App\Models\Client;
 use App\Models\Payment;
+use App\Orchid\Filters\PaymentClientSearchFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 use Orchid\Crud\Layouts\ResourceFields;
@@ -100,7 +101,9 @@ class PaymentResource extends Resource
 
     public function filters(): array
     {
-        return [];
+        return [
+            new PaymentClientSearchFilter(),
+        ];
     }
 
     /**

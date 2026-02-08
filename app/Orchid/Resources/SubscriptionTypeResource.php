@@ -41,7 +41,6 @@ class SubscriptionTypeResource extends Resource
             Relation::make('studio_id')->fromModel(Studio::class, 'name')->title('Студия')->required(),
             Input::make('name')->title('Название')->required(),
             Input::make('price')->title('Цена')->type('number')->step(0.01)->required(),
-            Input::make('lessons_count')->title('Количество занятий')->type('number'),
             Input::make('validity_days')->title('Срок действия (дней)')->type('number'),
             Select::make('is_one_time')->title('Разовое')->options([0 => 'Нет', 1 => 'Да']),
             Select::make('is_personal')->title('Персональное')->options([0 => 'Нет', 1 => 'Да']),
@@ -54,7 +53,6 @@ class SubscriptionTypeResource extends Resource
             TD::make('id'),
             TD::make('name', 'Название'),
             TD::make('price', 'Цена'),
-            TD::make('lessons_count', 'Занятий'),
             TD::make('validity_days', 'Дней'),
             TD::make('created_at', 'Создан')->render(fn ($m) => $m->created_at?->format('d.m.Y')),
         ];
@@ -67,7 +65,6 @@ class SubscriptionTypeResource extends Resource
             Sight::make('studio_id', 'Студия')->render(fn ($m) => $m->studio?->name ?? '-'),
             Sight::make('name', 'Название'),
             Sight::make('price', 'Цена'),
-            Sight::make('lessons_count', 'Количество занятий'),
             Sight::make('validity_days', 'Срок действия (дней)'),
             Sight::make('is_one_time', 'Разовое'),
             Sight::make('is_personal', 'Персональное'),

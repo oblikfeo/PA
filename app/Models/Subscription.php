@@ -21,14 +21,12 @@ class Subscription extends Model
         'subscription_type_id',
         'purchase_date',
         'expires_at',
-        'lessons_remaining',
         'is_active',
     ];
 
     protected $casts = [
         'purchase_date' => 'date',
         'expires_at' => 'date',
-        'lessons_remaining' => 'integer',
         'is_active' => 'boolean',
     ];
 
@@ -57,17 +55,21 @@ class Subscription extends Model
         return $this->hasMany(PaymentReminder::class);
     }
 
+    /** Абонемент истёк, если указана дата окончания и сегодня уже после неё (день окончания включён в действие). */
+    public function isExpired(): bool
+    {
+        if (!$this->expires_at) {
+            return false;
+        }
+        return $this->expires_at->toDateString() < now()->toDateString();
+    }
+
     protected static function booted(): void
     {
         static::saving(function (Subscription $subscription): void {
             $type = $subscription->subscriptionType ?? ($subscription->subscription_type_id ? SubscriptionType::find($subscription->subscription_type_id) : null);
-            if (!$subscription->exists && $type) {
-                if ($subscription->lessons_remaining === null || $subscription->lessons_remaining === '') {
-                    $subscription->lessons_remaining = $type->lessons_count ?? 0;
-                }
-                if (!$subscription->expires_at && $subscription->purchase_date && $type->validity_days) {
-                    $subscription->expires_at = $subscription->purchase_date->copy()->addDays($type->validity_days);
-                }
+            if ($type && $subscription->purchase_date && $type->validity_days) {
+                $subscription->expires_at = $subscription->purchase_date->copy()->addDays($type->validity_days);
             }
         });
     }
